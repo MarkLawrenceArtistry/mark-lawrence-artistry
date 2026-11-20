@@ -12,7 +12,17 @@ export default function CartPage() {
   const [clientEmail, setClientEmail] = useState('');
   const [clientContact, setClientContact] = useState('');
   const [fbName, setFbName] = useState('');
-  const [description, setDescription] = useState('');
+  const [brief, setBrief] = useState({
+    title: '',
+    hero: '',
+    paymentModes: '',
+    colors: '',
+    pilotFeatures: '',
+    cta: 'Message us now!',
+    deadline: '',
+    contactDetails: '',
+    otherRequests: '',
+    });
   const [fbUrl, setFbUrl] = useState('https://facebook.com/profile.php?id=61593438616029');
 
   const [submitting, setSubmitting] = useState(false);
@@ -48,10 +58,24 @@ export default function CartPage() {
       return;
     }
 
-    if (!clientName.trim() || !clientContact.trim() || !description.trim()) {
-      setError('Please enter your name, contact number, and design brief.');
-      return;
+    if (!clientName.trim() || !clientContact.trim() || !brief.title.trim() || !brief.deadline.trim()) {
+        Error('Please enter your name, contact number, design title, and preferred deadline.');
+        return;
     }
+
+    const formattedDescription = [
+        'Design Brief Fill-up',
+        '',
+        `1. Title / Headline: ${brief.title.trim() || 'N/A'}`,
+        `2. Hero / Main Character: ${brief.hero.trim() || 'N/A'}`,
+        `3. Modes of Payment (on design): ${brief.paymentModes.trim() || 'N/A'}`,
+        `4. Preferred Color Theme (1-2 colors): ${brief.colors.trim() || 'N/A'}`,
+        `5. Pilot Service Features: ${brief.pilotFeatures.trim() || 'N/A'}`,
+        `6. Call-to-Action (CTA): ${brief.cta.trim() || 'Message us now!'}`,
+        `7. Deadline (Min. 1 Day): ${brief.deadline.trim() || 'N/A'}`,
+        `8. Contact Details / Other Accounts (on design): ${brief.contactDetails.trim() || 'N/A'}`,
+        `9. Other Requests:\n${brief.otherRequests.trim() || '- None'}`,
+    ].join('\n');
 
     setSubmitting(true);
     try {
@@ -77,7 +101,7 @@ export default function CartPage() {
           client_email: clientEmail.trim(),
           client_contact: clientContact.trim(),
           fb_name: fbName.trim(),
-          description: description.trim(),
+          description: formattedDescription,
           tag: primaryTag,
           items: formattedItems,
           total_amount: cartTotal,
@@ -326,16 +350,121 @@ export default function CartPage() {
                       />
                     </div>
 
+                    <div
+                    style={{
+                        background: '#f8f9fa',
+                        border: '1px solid #e5e7eb',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        marginBottom: '18px',
+                    }}
+                    >
+                    <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Design Brief Fill-Up</h3>
+
                     <div className="form-group">
-                      <label>Design Brief & Specific Details *</label>
-                      <textarea
-                        rows="4"
+                        <label>1. Title / Headline * (e.g. PILOT SERVICE, LOOKING FOR CLIENT, RANK UP MADE EASY)</label>
+                        <input
+                        type="text"
                         className="form-control"
-                        placeholder="Describe your theme, color palette, texts/prices to include, mascot/hero, and preferred deadline..."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="e.g. Mark's Pilot Service / Rank Up Made Easy"
+                        value={brief.title}
+                        onChange={(e) => setBrief({ ...brief, title: e.target.value })}
                         required
-                      />
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>2. Which Hero / Main Character should we use?</label>
+                        <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. Gusion Soul Revelation, Chou Iori Yagami"
+                        value={brief.hero}
+                        onChange={(e) => setBrief({ ...brief, hero: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>3. Your Modes of Payment (to display on the design)</label>
+                        <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. GCash, Maya, BPI"
+                        value={brief.paymentModes}
+                        onChange={(e) => setBrief({ ...brief, paymentModes: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>4. Preferred Edit Colors (provide 1–2 colors)</label>
+                        <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. Crimson Red & Black"
+                        value={brief.colors}
+                        onChange={(e) => setBrief({ ...brief, colors: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>5. Pilot Service Features (skip if not a pilot service)</label>
+                        <textarea
+                        rows="2"
+                        className="form-control"
+                        placeholder="e.g. ✅ Fast Process, ✅ 100% Safe & Legit, ✅ Livestream Available"
+                        value={brief.pilotFeatures}
+                        onChange={(e) => setBrief({ ...brief, pilotFeatures: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>6. Choose a Call-to-Action (CTA)</label>
+                        <select
+                        className="form-control"
+                        value={brief.cta}
+                        onChange={(e) => setBrief({ ...brief, cta: e.target.value })}
+                        >
+                        <option value="Message us now!">Message us now!</option>
+                        <option value="Inquire us now!">Inquire us now!</option>
+                        <option value="Reserve a slot">Reserve a slot</option>
+                        <option value="Learn more">Learn more</option>
+                        <option value="Contact us">Contact us</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>7. Preferred Deadline * (Minimum 1 day)</label>
+                        <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. Nov 25, 2026 / 2 days"
+                        value={brief.deadline}
+                        onChange={(e) => setBrief({ ...brief, deadline: e.target.value })}
+                        required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>8. Contact Details / Other Accounts (to show on the design)</label>
+                        <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. FB: Juan Pilot | Discord: juan#1234"
+                        value={brief.contactDetails}
+                        onChange={(e) => setBrief({ ...brief, contactDetails: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label>9. Other Requests / Notes</label>
+                        <textarea
+                        rows="3"
+                        className="form-control"
+                        placeholder="- Any extra layout notes or reference links..."
+                        value={brief.otherRequests}
+                        onChange={(e) => setBrief({ ...brief, otherRequests: e.target.value })}
+                        />
+                    </div>
                     </div>
 
                     <div

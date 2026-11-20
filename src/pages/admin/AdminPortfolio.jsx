@@ -14,8 +14,9 @@ const EMPTY_FORM = {
 export default function AdminPortfolio() {
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState({ type: '', text: '' });
+  const [error, setError] = useState('');
 
   const loadPortfolio = async () => {
     const { data } = await supabase
@@ -30,15 +31,27 @@ export default function AdminPortfolio() {
     loadPortfolio();
   }, []);
 
+  const openNew = () => {
+    setForm(EMPTY_FORM);
+    setError('');
+    setModalOpen(true);
+  };
+
+  const openEdit = (item) => {
+    setForm(item);
+    setError('');
+    setModalOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.image_url.trim()) {
-      setMsg({ type: 'error', text: 'Please upload or paste an image URL first.' });
+      setError('Please upload or paste an image URL first.');
       return;
     }
 
     setSaving(true);
-    setMsg({ type: '', text: '' });
+    setError('');
     const payload = {
       title: form.title.trim() || 'Design',
       tag: form.tag.trim() || 'Esports',
@@ -49,21 +62,19 @@ export default function AdminPortfolio() {
 
     try {
       if (form.id) {
-        const { error } = await supabase
+        const { error: err } = await supabase
           .from('portfolio_items')
           .update(payload)
           .eq('id', form.id);
-        if (error) throw error;
-        setMsg({ type: 'success', text: 'Portfolio item updated!' });
+        if (err) throw err;
       } else {
-        const { error } = await supabase.from('portfolio_items').insert(payload);
-        if (error) throw error;
-        setMsg({ type: 'success', text: 'Portfolio item added!' });
+        const { error: err } = await supabase.from('portfolio_items').insert(payload);
+        if (err) throw err;
       }
-      setForm(EMPTY_FORM);
+      setModalOpen(false);
       await loadPortfolio();
     } catch (err) {
-      setMsg({ type: 'error', text: err.message });
+      setError(err.message);
     } finally {
       setSaving(false);
     }
@@ -76,146 +87,165 @@ export default function AdminPortfolio() {
   };
 
   return (
-    <div style={{ display: 'grid', gap: '30px' }}>
-      <div className="card">
-        <h2 style={{ fontSize: '2.2rem', marginBottom: '15px' }}>
-          {form.id ? 'Edit Portfolio Design' : 'Upload Portfolio Design'}
-        </h2>
-
-        {msg.text && <div className={`alert alert-${msg.type}`}>{msg.text}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '15px',
-            }}
-          >
-            <div className="form-group">
-              <label>Title</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="e.g. MLBB Pilot Pricelist"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Tag / Category</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="e.g. AdBanner, Pricelist, FB Cover"
-                value={form.tag}
-                onChange={(e) => setForm({ ...form, tag: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Sort Order</label>
-              <input
-                type="number"
-                className="form-control"
-                value={form.sort_order}
-                onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <ImageUploader
-            label="Portfolio Artwork (Cloudinary) *"
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
-
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              id="portActive"
-              type="checkbox"
-              checked={form.is_active}
-              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-            />
-            <label htmlFor="portActive" style={{ margin: 0 }}>
-              Visible on Portfolio Page
-            </label>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" className="btn" disabled={saving}>
-              {saving ? 'Saving...' : form.id ? 'Update Design' : 'Add to Portfolio'}
-            </button>
-            {form.id && (
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => setForm(EMPTY_FORM)}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      <div className="card">
-        <h2 style={{ fontSize: '2.2rem', marginBottom: '20px' }}>
+    <div className="card">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '20px',
+        }}
+      >
+        <h2 style={{ fontSize: '2.2rem', margin: 0 }}>
           Portfolio Items ({items.length})
         </h2>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-            gap: '20px',
-          }}
-        >
-          {items.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '10px',
-                overflow: 'hidden',
-                background: '#fafafa',
-              }}
-            >
-              <img
-                src={item.image_url}
-                alt={item.title}
-                style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }}
-              />
-              <div style={{ padding: '12px' }}>
-                <strong>{item.title}</strong>
-                <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>
-                  Tag: {item.tag} • {item.is_active ? 'Visible' : 'Hidden'}
-                </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    type="button"
-                    className="btn-small"
-                    onClick={() => {
-                      setForm(item);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-small"
-                    style={{ background: '#dc2626' }}
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+        <button type="button" className="btn" onClick={openNew}>
+          <i className="fa-solid fa-plus"></i> Add Portfolio Design
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+          gap: '20px',
+        }}
+      >
+        {items.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              background: '#fafafa',
+            }}
+          >
+            <img
+              src={item.image_url}
+              alt={item.title}
+              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }}
+            />
+            <div style={{ padding: '12px' }}>
+              <strong>{item.title}</strong>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>
+                Tag: {item.tag} • {item.is_active ? 'Visible' : 'Hidden'}
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button type="button" className="icon-btn" onClick={() => openEdit(item)}>
+                  <i className="fa-solid fa-pen"></i> Edit
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  style={{ color: '#dc2626' }}
+                  onClick={() => handleDelete(item.id)}
+                >
+                  <i className="fa-solid fa-trash"></i>
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
+
+      {modalOpen && (
+        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: '2rem', margin: 0 }}>
+                {form.id ? 'Edit Portfolio Design' : 'Upload Portfolio Design'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '1.4rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="modal-body">
+              {error && <div className="alert alert-error">{error}</div>}
+
+              <div className="form-group">
+                <label>Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. MLBB Pilot Pricelist"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 120px',
+                  gap: '12px',
+                }}
+              >
+                <div className="form-group">
+                  <label>Tag / Category</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. AdBanner, Pricelist, FB Cover"
+                    value={form.tag}
+                    onChange={(e) => setForm({ ...form, tag: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Sort Order</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={form.sort_order}
+                    onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <ImageUploader
+                label="Portfolio Artwork (Cloudinary) *"
+                value={form.image_url}
+                onChange={(url) => setForm({ ...form, image_url: url })}
+              />
+
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  id="portActiveModal"
+                  type="checkbox"
+                  checked={form.is_active}
+                  onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                />
+                <label htmlFor="portActiveModal" style={{ margin: 0 }}>
+                  Visible on Portfolio Page
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn secondary" onClick={() => setModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn" disabled={saving}>
+                  {saving ? 'Saving...' : form.id ? 'Update Design' : 'Add to Portfolio'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

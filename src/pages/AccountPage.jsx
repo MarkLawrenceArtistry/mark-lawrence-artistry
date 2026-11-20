@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import CommissionDetailModal from '../components/CommissionDetailModal';
+import CommissionReceiptModal from '../components/CommissionReceiptModal';
 
 export default function AccountPage() {
   const { user, profile, isAdmin, refreshProfile, signOut } = useAuth();
@@ -29,6 +31,9 @@ export default function AccountPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  const [detailOrder, setDetailOrder] = useState(null);
+  const [receiptOrder, setReceiptOrder] = useState(null);
 
   useEffect(() => {
     if (profile) {
@@ -302,6 +307,7 @@ export default function AccountPage() {
                       <th style={{ padding: '12px 8px' }}>Total</th>
                       <th style={{ padding: '12px 8px' }}>Payment</th>
                       <th style={{ padding: '12px 8px' }}>Work Status</th>
+                      <th style={{ padding: '12px 8px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -328,6 +334,26 @@ export default function AccountPage() {
                           <span className={`status-pill status-${order.work_status}`}>
                             {order.work_status.replace('_', ' ')}
                           </span>
+                        </td>
+                        <td style={{ padding: '12px 8px', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                            type="button"
+                            className="icon-btn"
+                            title="View Details"
+                            onClick={() => setDetailOrder(order)}
+                            >
+                            <i className="fa-solid fa-eye"></i>
+                            </button>
+                            <button
+                            type="button"
+                            className="icon-btn accent"
+                            title="View / Export Receipt"
+                            onClick={() => setReceiptOrder(order)}
+                            >
+                            <i className="fa-solid fa-receipt"></i> Receipt
+                            </button>
+                        </div>
                         </td>
                       </tr>
                     ))}
@@ -379,6 +405,16 @@ export default function AccountPage() {
           )}
         </div>
       </section>
+
+      <CommissionDetailModal
+        commission={detailOrder}
+        onClose={() => setDetailOrder(null)}
+        onOpenReceipt={(order) => setReceiptOrder(order)}
+        />
+        <CommissionReceiptModal
+        commission={receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+        />
     </>
   );
 }

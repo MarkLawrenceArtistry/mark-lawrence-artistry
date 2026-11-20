@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DataPrivacyModal from '../components/DataPrivacyModal';
 
 export default function LoginPage() {
   const { user, signIn, signUp } = useAuth();
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [contactNumber, setContactNumber] = useState('');
   const [fbName, setFbName] = useState('');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +82,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  
 
   return (
     <section style={{ padding: '60px 20px' }}>
@@ -203,32 +207,44 @@ export default function LoginPage() {
                 </div>
 
                 <div
-                  className="form-group"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '10px',
-                    background: '#f8f9fa',
-                    padding: '12px',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <input
-                    id="privacyConsent"
-                    type="checkbox"
-                    checked={privacyAgreed}
-                    onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                    style={{ marginTop: '4px' }}
-                  />
-                  <label
-                    htmlFor="privacyConsent"
-                    style={{ fontWeight: 'normal', fontSize: '0.85rem', margin: 0 }}
-                  >
-                    <strong>Data Privacy Consent:</strong> I consent to Mark Lawrence Artistry
-                    storing my name, contact number, and email address for commission processing. I
-                    can update or delete my account anytime.
-                  </label>
-                </div>
+                    className="form-group"
+                    style={{
+                        background: privacyAgreed ? '#dcfce7' : '#f8f9fa',
+                        border: `1px solid ${privacyAgreed ? '#86efac' : '#e5e7eb'}`,
+                        padding: '14px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                    }}
+                    >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                        <input
+                        type="checkbox"
+                        checked={privacyAgreed}
+                        onChange={() => setPrivacyModalOpen(true)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.88rem' }}>
+                        {privacyAgreed ? (
+                            <strong>Data Privacy Policy Accepted</strong>
+                        ) : (
+                            <>
+                            Please read & accept our <strong>Data Privacy Policy</strong> *
+                            </>
+                        )}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        className="btn-small"
+                        onClick={() => setPrivacyModalOpen(true)}
+                    >
+                        {privacyAgreed ? 'Review Policy' : 'Read & Agree'}
+                    </button>
+                    </div>
               </>
             )}
 
@@ -247,6 +263,15 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+      <DataPrivacyModal
+        isOpen={privacyModalOpen}
+        initialChecked={privacyAgreed}
+        onClose={() => setPrivacyModalOpen(false)}
+        onConfirm={(agreed) => {
+            setPrivacyAgreed(agreed);
+            setPrivacyModalOpen(false);
+        }}
+        />
     </section>
   );
 }
