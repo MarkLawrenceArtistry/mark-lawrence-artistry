@@ -1,14 +1,9 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
+import AdminDashboard from './AdminDashboard';
+import AdminCommissions from './AdminCommissions';
 import AdminProducts from './AdminProducts';
 import AdminPortfolio from './AdminPortfolio';
 import AdminSiteContent from './AdminSiteContent';
-
-const ComingNext = ({ title }) => (
-  <div className="card">
-    <h2>{title}</h2>
-    <p style={{ color: '#666', marginTop: '8px' }}>Coming in Module 6 (next step!).</p>
-  </div>
-);
 
 export default function AdminLayout() {
   const linkStyle = ({ isActive }) => ({
@@ -57,8 +52,8 @@ export default function AdminLayout() {
           </div>
 
           <Routes>
-            <Route index element={<ComingNext title="Analytics Dashboard" />} />
-            <Route path="commissions" element={<ComingNext title="Commission Manager" />} />
+            <Route index element={<AdminDashboard />} />
+            <Route path="commissions" element={<AdminCommissions />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="portfolio" element={<AdminPortfolio />} />
             <Route path="content" element={<AdminSiteContent />} />
